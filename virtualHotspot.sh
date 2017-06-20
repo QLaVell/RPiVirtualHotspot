@@ -6,7 +6,7 @@
 dnsmasq="/etc/dnsmasq.conf"
 hostapd="/etc/hostapd/hostapd.conf"
 interfaces="/etc/network/interfaces"
-hostadpstart="/usr/local/bin/hostapdstart"
+hostapdstart="/usr/local/bin/hostapdstart"
 rclocal="/etc/rc.local"
 
 # Check if script was run as root, quit if not
@@ -29,10 +29,8 @@ else
   cp $dnsmasq ${dnsmasq}.orig
 fi
 
-# Create and edit the dnsmasq configuration file
-echo interface=lo,uap0 > $dnsmasq
-echo no-dhcp-interface=lo,wlan0 >> $dnsmasq
-echo dhcp-range=172.24.1.50,172.24.1.150,12h >> $dnsmasq
+# Copy included dnsmasq configuration file
+cp ./dnsmasq.config $dnsmasq
 
 # Prompt for new SSID and password for virtual hotspot
 read -p 'Please enter a SSID for your virtual hotspot: ' ssid
@@ -41,14 +39,14 @@ read -sp 'Please enter a password for you virtual hotspot: ' password
 # If the hostapd configuration file exists, make a copy
 if [ -e $hostapd ]
 then
-  mv $hostapd ${hostapd}.orig
+  cp $hostapd ${hostapd}.orig
 fi
 
 # Create and edit the hostapd configuration file
 echo interface=uap0 > $hostapd
 echo ssid=$ssid >> $hostapd
 echo hw_mode=g >> $hostapd
-echo channel=1 >> $hostapd
+echo channel=6 >> $hostapd
 echo macaddr_acl=0 >> $hostapd
 echo auth_algs=1 >> $hostapd
 echo ignore_broadcast_ssid=0 >> $hostapd
@@ -67,7 +65,7 @@ else
 fi
 
 # insert a new line into the interfaces file and edit it
-echo >> $interfaces
+sed -n '/uap0/,/^$/!p' $interfaces > $interfaces
 echo auto uap0 >> $interfaces
 echo iface uap0 inet static >> $interfaces
 echo address 172.24.1.1 >> $interfaces
@@ -78,7 +76,7 @@ echo broadcast 172.24.1.255 >> $interfaces
 # If the hostapdstart script exists, make a backup
 if [ -e $hostapdstart ]
 then
-  mv $hostapdstart ${hostapdstart}.orig
+  cp $hostapdstart ${hostapdstart}.orig
 fi
 
 # Create and edit the hostapdstart script
