@@ -34,7 +34,13 @@ cp ./dnsmasq.config $dnsmasq
 
 # Prompt for new SSID and password for virtual hotspot
 read -p 'Please enter a SSID for your virtual hotspot: ' ssid
-read -sp 'Please enter a password for you virtual hotspot: ' password
+read -sp 'Please enter a password for you virtual hotspot (must be 8 characters or more): ' password
+passwdlen=${#password}
+while [ $passwdlen -lt 8 ]
+do
+  read -sp 'The password you entered was too short. Please enter a password of 8 or more characters: ' password
+  passwdlen=${#password}
+done
 
 # If the hostapd configuration file exists, make a copy
 if [ -e $hostapd ]
