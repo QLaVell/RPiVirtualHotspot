@@ -16,7 +16,7 @@ if [[ $EUID -ne 0 ]]
 fi
 
 # update and upgrade the system to prepare for installation
-apt update && apt upgrade -y
+#apt update && apt upgrade -y
 # install necessary packages
 apt install hostapd dnsmasq -y
 
@@ -30,7 +30,7 @@ else
 fi
 
 # Copy included dnsmasq configuration file
-cp ./dnsmasq.config $dnsmasq
+cp ./dnsmasq.conf $dnsmasq
 
 # Prompt for new SSID and password for virtual hotspot
 read -p 'Please enter a SSID for your virtual hotspot: ' ssid
@@ -38,6 +38,7 @@ read -sp 'Please enter a password for you virtual hotspot (must be 8 characters 
 passwdlen=${#password}
 while [ $passwdlen -lt 8 ]
 do
+  echo
   read -sp 'The password you entered was too short. Please enter a password of 8 or more characters: ' password
   passwdlen=${#password}
 done
@@ -60,7 +61,7 @@ echo wpa=2 >> $hostapd
 echo wpa_passphrase=$password >> $hostapd
 echo wpa_key_mgmt=WPA-PSK >> $hostapd
 echo wpa_pairwise=TKIP >> $hostapd
-echo wpa_pairwise-CCMP >> $hostapd
+echo wpa_pairwise=CCMP >> $hostapd
 
 # If the interfaces file backup exists, make a secondary copy, otherwise make a backup
 if [ -e ${interfaces}.oirg ]
@@ -71,7 +72,10 @@ else
 fi
 
 # insert a new line into the interfaces file and edit it
-sed -n '/uap0/,/^$/!p' $interfaces > $interfaces
+touch ${interfaces}.temp
+chmod a+w ${interfaces}.temp
+sed -n '/uap0/,/^$/!p' $interfaces > ${interfaces}.temp
+mv ${interfaces}.temp $interfaces
 echo auto uap0 >> $interfaces
 echo iface uap0 inet static >> $interfaces
 echo address 172.24.1.1 >> $interfaces
@@ -89,7 +93,7 @@ fi
 echo iw dev wlan0 interface add uap0 type __ap > $hostapdstart
 echo sysctl net.ipv4.ip_forward=1 >> $hostapdstart
 echo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE >> $hostapdstart
-echo iptables -A FORWARD -i wlan0 -o uap0 -m state RELATED,ESTABLISHED -j ACCEPT >> $hostapdstart
+echo iptables -A FORWARD -i wlan0 -o uap0 -m state --state RELATED,ESTABLISHED -j ACCEPT >> $hostapdstart
 echo iptables -A FORWARD -i uap0 -o wlan0 -j ACCEPT >> $hostapdstart
 echo ifup uap0 >> $hostapdstart
 echo service dnsmasq restart >> $hostapdstart
@@ -104,12 +108,14 @@ then
   cp $rclocal ${rclocal}.orig
 fi
 
-grep -Ev "exit|hostapdstart" $rclocal > $rc.local
+grep -Ev "exit|hostapdstart" $rclocal > ${rclocal}.temp
+mv ${rclocal}.temp $rclocal
 echo >> $rclocal
-echo hostapdstart >1& >> $rclocal
+echo "hostapdstart >1&" >> $rclocal
 echo  >> $rclocal
 echo exit 0 >> $rclocal
 
+echo
 echo "System reboot required. Would you like to reboot now?"
 select yn in "Yes" "No"; do
   case $yn in
