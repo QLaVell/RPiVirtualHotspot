@@ -115,6 +115,8 @@ echo "hostapdstart >1&" >> $rclocal
 echo  >> $rclocal
 echo exit 0 >> $rclocal
 
+chmod 755 $rclocal
+
 echo
 echo "System reboot required. Would you like to reboot now?"
 select yn in "Yes" "No"; do
