@@ -33,15 +33,25 @@ fi
 cp ./dnsmasq.conf $dnsmasq
 
 # Prompt for new SSID and password for virtual hotspot
-read -p 'Please enter a SSID for your virtual hotspot: ' ssid
-read -sp 'Please enter a password for you virtual hotspot (must be 8 characters or more): ' password
-passwdlen=${#password}
-while [ $passwdlen -lt 8 ]
-do
-  echo
-  read -sp 'The password you entered was too short. Please enter a password of 8 or more characters: ' password
+custom=false
+if [ "$custom" = true ]
+then
+  read -p 'Please enter a SSID for your virtual hotspot: ' ssid
+  read -sp 'Please enter a password for you virtual hotspot (must be 8 characters or more): ' password
   passwdlen=${#password}
-done
+  while [ $passwdlen -lt 8 ]
+  do
+    echo
+    read -sp 'The password you entered was too short. Please enter a password of 8 or more characters: ' password
+    passwdlen=${#password}
+  done
+else
+  ssid="RPi"$(awk -F ':' '{print $(NF-1) $(NF)}' /sys/class/net/wlan0/address)
+  password="iRobot123"
+fi
+
+# Get channel of connected wifi
+channel=$(iwgetid --channel -r)
 
 # If the hostapd configuration file exists, make a copy
 if [ -e $hostapd ]
@@ -53,7 +63,7 @@ fi
 echo interface=uap0 > $hostapd
 echo ssid=$ssid >> $hostapd
 echo hw_mode=g >> $hostapd
-echo channel=6 >> $hostapd
+echo channel=$channel >> $hostapd
 echo macaddr_acl=0 >> $hostapd
 echo auth_algs=1 >> $hostapd
 echo ignore_broadcast_ssid=0 >> $hostapd
