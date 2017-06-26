@@ -127,11 +127,15 @@ echo exit 0 >> $rclocal
 
 chmod 755 $rclocal
 
-echo
-echo "System reboot required. Would you like to reboot now?"
-select yn in "Yes" "No"; do
-  case $yn in
-    Yes ) reboot; break;;
-    No ) exit;;
-  esac
-done 
+automated=true
+if [ "$automated"=false ]
+then
+  echo
+  echo "System reboot required. Would you like to reboot now?"
+  select yn in "Yes" "No"; do
+    case $yn in
+      Yes ) reboot; break;;
+      No ) exit;;
+    esac
+  done
+fi
