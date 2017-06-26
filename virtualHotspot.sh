@@ -52,6 +52,10 @@ fi
 
 # Get channel of connected wifi
 channel=$(iwgetid --channel -r)
+if [ -z "$channel" ]
+then
+  channel=6
+fi
 
 # If the hostapd configuration file exists, make a copy
 if [ -e $hostapd ]
