@@ -116,24 +116,24 @@ echo hostapd $hostapd >> $hostapdstart
 # edit the permissions to allow all to execute
 chmod 667 "$hostapdstart"
 
-# make a copy of rc.local
-if [ -e $rclocal ]
-then
-  cp $rclocal ${rclocal}.orig
-fi
-
-grep -Ev "exit|hostapdstart" $rclocal > ${rclocal}.temp
-mv ${rclocal}.temp $rclocal
-echo >> $rclocal
-echo "hostapdstart >1&" >> $rclocal
-echo  >> $rclocal
-echo exit 0 >> $rclocal
-
-chmod 755 $rclocal
-
 automated=true
 if [ "$automated"=false ]
 then
+  # make a copy of rc.local
+  if [ -e $rclocal ]
+  then
+    cp $rclocal ${rclocal}.orig
+  fi
+
+  grep -Ev "exit|hostapdstart" $rclocal > ${rclocal}.temp
+  mv ${rclocal}.temp $rclocal
+  echo >> $rclocal
+  echo "hostapdstart >1&" >> $rclocal
+  echo  >> $rclocal
+  echo exit 0 >> $rclocal
+
+  chmod 755 $rclocal
+
   echo
   echo "System reboot required. Would you like to reboot now?"
   select yn in "Yes" "No"; do
