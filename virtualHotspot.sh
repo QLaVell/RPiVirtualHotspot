@@ -86,10 +86,7 @@ else
 fi
 
 # insert a new line into the interfaces file and edit it
-touch ${interfaces}.temp
-chmod a+w ${interfaces}.temp
-sed -n '/uap0/,/^$/!p' $interfaces > ${interfaces}.temp
-mv ${interfaces}.temp $interfaces
+cp ./interfaces $interfaces
 echo auto uap0 >> $interfaces
 echo iface uap0 inet static >> $interfaces
 echo address 172.24.1.1 >> $interfaces
